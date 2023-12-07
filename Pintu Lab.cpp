@@ -19,8 +19,8 @@ struct imageFile
 };
 
 // Globals.
-static GLuint texture[3];
-const int numTextures = 3; // Array of texture ids.
+static GLuint texture[4];
+const int numTextures = 4; // Array of texture ids.
 static float angle = 0.0;  // Angle to rotate textured square.
 // Local storage untuk image data.
 imageFile *images[numTextures];
@@ -106,7 +106,8 @@ void loadTextures()
     const char *textureFiles[numTextures] = {
         "Textures/logo_pens.bmp",
         "Textures/pintu.bmp",
-        "Textures/gagang.bmp"
+        "Textures/gagang.bmp",
+        "Textures/tembok.bmp"
         // Tambahkan lebih banyak nama file tekstur sesuai kebutuhan
     };
 
@@ -132,16 +133,40 @@ void loadTextures()
     }
 }
 
-int buka = 0; // Variable untuk menyimpan nilai buka
+float bukaTranslateX = 0;
+float bukaTranslateZ = 0;
+float bukaRotate = 0;
+int totalOpen = 0;
+
 void keyboard(unsigned char key, int x, int y)
 {
     // Fungsi ini akan dipanggil ketika sebuah tombol keyboard ditekan
 
-    if (key == 32)
-    {                                               // ASCII untuk spasi adalah 32
-        buka = (buka + 1) % 2;                      // Toggle nilai buka antara 0 dan 1
-        std::cout << "Buka: " << buka << std::endl; // Pesan debugging
-        glutPostRedisplay();                        // Memicu redisplay untuk memperbarui tampilan
+    if (key == 32) // ASCII untuk spasi adalah 32
+    {
+        if (totalOpen == -1)
+        {
+            bukaTranslateX = 0;
+            bukaTranslateZ = 0;
+            bukaRotate = 0;
+            totalOpen = 0;
+        }
+        else if (totalOpen == 0)
+        {
+            bukaRotate = 45;
+            bukaTranslateX = .1f;
+            bukaTranslateZ = .2f;
+            totalOpen++;
+        }
+        else if (totalOpen == 1)
+        {
+            bukaRotate = 90;
+            bukaTranslateX = .3f;
+            bukaTranslateZ = .3f;
+            totalOpen = -1;
+        }
+        std::cout << "Buka: " << bukaTranslateX << std::endl; // Pesan debugging
+        glutPostRedisplay();                                  // Memicu redisplay untuk memperbarui tampilan
     }
     if (key == '0')
     {
@@ -196,20 +221,47 @@ void setupLight()
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
 }
 
+void tembok()
+{
+    glPushMatrix();
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture[3]);
+    glColor3f(0.2f, 0.12f, 0.0f);
+    glTranslatef(.6, 0, 0);
+    glScalef(0.6f, 1.0f, 0.01f);
+    drawCube();
+    glPopMatrix();
+
+    glPushMatrix();
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture[3]);
+    glColor3f(0.2f, 0.12f, 0.0f);
+    glTranslatef(-.6, 0, 0);
+    glScalef(0.6f, 1.0f, 0.01f);
+    drawCube();
+    glPopMatrix();
+
+    glPushMatrix();
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture[3]);
+    glColor3f(0.2f, 0.12f, 0.0f);
+    glTranslatef(0, .75, 0);
+    glScalef(1.8, .5f, 0.01f);
+    drawCube();
+    glPopMatrix();
+
+    glPushMatrix();
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture[3]);
+    glColor3f(0.2f, 0.12f, 0.0f);
+    glTranslatef(0, -.5, 0);
+    glScalef(1.8, .05f, 0.01f);
+    drawCube();
+    glPopMatrix();
+}
+
 void lawang()
 {
-
-    // // Map the texture onto a square polygon.
-    // glBegin(GL_POLYGON);
-    // glTexCoord2f(0.0, 0.0);
-    // glVertex3f(-10.0, -5.0, 0.0);
-    // glTexCoord2f(0.5, 0.0);
-    // glVertex3f(10.0, -5.0, 0.0);
-    // glTexCoord2f(0.5, 0.5);
-    // glVertex3f(10.0, 5.0, 0.0);
-    // glTexCoord2f(0.0, 0.5);
-    // glVertex3f(-10.0, 5.0, 0.0);
-    // glEnd();
 
     // pintu utama gede
     glPushMatrix();
@@ -305,11 +357,13 @@ void display()
     updateCamera();
 
     glPushMatrix();
-    glTranslatef(buka * 0.07, 0.0, 0.0);
-    glRotatef(buka * 90.0f, 0.0f, 1.0f, 0.0f); // Putar pintu jika buka == 1
+    glTranslatef(bukaTranslateX, 0, bukaTranslateZ);
+    glRotatef(bukaRotate, 0.0f, 1.0f, 0.0f); // Putar pintu jika buka == 1
     // glRotatef(doorAngle, 0.0f, 1.0f, 0.0f);
     lawang();
     glPopMatrix();
+
+    tembok();
 
     glutSwapBuffers();
 }
